@@ -1,4 +1,4 @@
-import argparse, os, sys, gzip, itertools
+import argparse, os, sys, gzip
 from tqdm import tqdm
 from pgs_harmonizer.harmonize import *
 from datetime import datetime
@@ -26,8 +26,8 @@ parser_POS.add_argument("-loc_hmoutput", dest="loc_outputs",
                         metavar="DIR",
                         default='./PGS_HmPOS/', required=False)
 parser_POS.add_argument('--var2location',
-                        help='Uses the annotations from the var2location.pl script (ENSEMBL SQL connection)',
-                        action='store_true', required=False)
+                        help='Root directory to the annotations from the var2location.pl script (ENSEMBL SQL connection)',
+                        metavar="DIR", required=False)
 parser_POS.add_argument('--silent_tqdm', help='Disables tqdm progress bar',
                         action='store_true', required=False)
 parser_POS.add_argument('--ignore_rsid', help='Ignores rsID mappings and harmonizes variants using only liftover',
@@ -211,25 +211,13 @@ def run_HmPOS(args, chunksize=100000):
     mapping_ensembl = None
     if 'rsID' in df_scoring.columns and args.ignore_rsid is False:
         tomap_rsIDs = clean_rsIDs(list(df_scoring['rsID']))
+        use_rest = True
         if args.var2location:
-            # Write list of rsIDs that need mapping via ENSEMBL
-            with open('EnsemblMappings/variants/{}.txt'.format(header['pgs_id']), 'w') as outf:
-                outf.write('\n'.join(tomap_rsIDs))
-
-            # ToDo add command to run var2location.pl on the EBI cluster (using local ENSEMBL mirror) or loop through ENSEMBL VCF for mappings
-
-            # Load ENSEMBL mappings
-            loc_mapping = 'EnsemblMappings/{}/{}.out'.format(args.target_build, header['pgs_id'])
-            loc_mapping_UNION = 'EnsemblMappings/{}/UNION.out'.format(args.target_build)
-            if os.path.isfile(loc_mapping):
-                print('Retrieving rsID mappings from ENSEMBL Mirror (var2location.pl:{}.out)'.format(header['pgs_id']))
-                mapping_ensembl = parse_var2location(loc_mapping)
-            elif os.path.isfile(loc_mapping_UNION):
-                print('Retrieving rsID mappings from ENSEMBL Mirror (var2location.pl:UNION.out)')
-                mapping_ensembl = parse_var2location(loc_mapping_UNION, tomap_rsIDs)
-            else:
-                sys.exit('Error: No rsID mappings from ENSEMBL Mirror (var2location.pl)')
-        else:
+            loc_var2location = args.var2location
+            if os.path.isdir(loc_var2location):
+                use_rest = False
+                mapping_ensembl = parse_var2location(loc_var2location)
+        if use_rest == True:
             print('Retrieving rsID mappings from ENSEMBL API')
             mapping_ensembl = ensembl_post(tomap_rsIDs, args.target_build)  # Retrieve the SNP info from ENSEMBL
     # Start Output
@@ -369,6 +357,7 @@ def run_HmVCF(args):
         os.mkdir(ofolder)
 
     # Load Variant References (VCF & Cohort)
+    print('Load Variant References (VCF & Cohort)')
     usingCohortVCF = None
     if args.cohort_name is not None:
         vcfs_targetbuild = VCFs(build=args.target_build, cohort_name=args.cohort_name, loc_vcfref=args.loc_vcfref)

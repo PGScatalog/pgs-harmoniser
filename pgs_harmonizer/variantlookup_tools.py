@@ -155,7 +155,10 @@ def vcf_lookup(chromosome, position, build, loc_vcfref='map/vcf_ref/'):
     if chromosome not in chromosomes:
         raise ValueError("Invalid Chromosome. Expected one of: {}".format(chromosomes))
 
-    loc_vcf = loc_vcfref + '{}/homo_sapiens-chr{}.vcf.gz'.format(build, chromosome)
+    loc_vcf = f'{loc_vcfref}{build}/homo_sapiens-chr{chromosome}.vcf.gz'
+    # If the given path hasn't a subdirectory for the assembly
+    if not os.path.isfile(loc_vcf):
+        loc_vcf = f'{loc_vcfref}/homo_sapiens-chr{chromosome}.vcf.gz'
     vcf = VCF(loc_vcf)
     if (type(position) is str) and ('-' in position):
         return list(vcf('{}:{}'.format(chromosome, position)))
@@ -171,10 +174,10 @@ class VCFs:
         self.build = build
         if cohort_name is None:
             for chr in chromosomes:
-                loc_vcf = loc_vcfref + '{}/homo_sapiens-chr{}.vcf.gz'.format(self.build, chr)
+                loc_vcf = f'{loc_vcfref}{self.build}/homo_sapiens-chr{chr}.vcf.gz'
                 # If the given path hasn't a subdirectory for the assembly
                 if not os.path.isfile(loc_vcf):
-                    loc_vcf = loc_vcfref + '/homo_sapiens-chr{}.vcf.gz'.format(chr)
+                    loc_vcf = f'{loc_vcfref}/homo_sapiens-chr{chr}.vcf.gz'
                 self.by_chr[chr] = VCF(loc_vcf)
         else:
             loc_vcf = '{}/{}/cohort_ref/{}.vcf.gz'.format(loc_vcfref, build, cohort_name)

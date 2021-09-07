@@ -242,7 +242,7 @@ class Harmonizer:
 
             for colname in self.hm_fields:
                 if colname in v:
-                    if colname is 'rsID':
+                    if colname == 'rsID':
                         rsid = v['hm_rsID']
                         if pd.isnull(rsid) is False:  # mapped by rsID
                             hm_info['rsID'] = rsid
@@ -267,7 +267,3 @@ class Harmonizer:
                         l_output[i] = v[colname]
 
         return pd.Series(l_output)
-
-
-
-

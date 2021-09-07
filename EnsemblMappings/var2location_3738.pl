@@ -30,17 +30,17 @@ die "\n\tUsage: var2location_3738.pl [variant list name (in 'variants/') folder]
 
 my $registry = 'Bio::EnsEMBL::Registry';
 
-$registry->load_all("registries/$ARGV[1]\.registry");
+$registry->load_all("$ARGV[1]/ensembl.registry");
 
-my $v_adaptor  = $registry->get_adaptor('homo_sapiens', 'variation', 'variation'); 
-my $vf_adaptor = $registry->get_adaptor('homo_sapiens', 'variation', 'variationfeature'); 
+my $v_adaptor  = $registry->get_adaptor('homo_sapiens', 'variation', 'variation');
+my $vf_adaptor = $registry->get_adaptor('homo_sapiens', 'variation', 'variationfeature');
 ## also return variants failing Ensembl QC
 $v_adaptor->db()->include_failed_variations(1);
 
 open my $log, ">", "$ARGV[1]/$ARGV[0]\.log" ||die "Failed to open log file  : $!\n";
 open my $out, ">", "$ARGV[1]/$ARGV[0]\.out" ||die "Failed to open output file  : $!\n";
 
-open my $infile, "variants/$ARGV[0]\.txt" ||die "Failed to open file of variant names, $ARGV[0] : $!\n";
+open my $infile, "<", "$ARGV[1]/variants/$ARGV[0]\.txt" ||die "Failed to open file of variant names, $ARGV[0] : $!\n";
 
 #my $first_line = <$infile>;
 #my @headers = split /\t/, $first_line;
