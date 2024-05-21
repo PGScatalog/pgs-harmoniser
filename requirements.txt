@@ -2,5 +2,5 @@ cyvcf2==0.30.14
 numpy==1.22.3
 pandas==1.4.2
 pyliftover==0.4
-requests==2.31.0
+requests==2.32.0
 tqdm==4.64.1
